@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  database:
+    image: docker.io/library/mariadb:latest
+    container_name: puvlobuilder_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_puvlo_2026
+      MYSQL_DATABASE: minicms_db
+      MYSQL_USER: minicms_user
+      MYSQL_PASSWORD: '23010'
+    ports:
+      - "3306:3306"
+    volumes:
+      - puvlo_db_data:/var/lib/mysql
+      - ./backup_minicms_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  puvlo_db_data:
