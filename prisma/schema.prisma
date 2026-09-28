@@ -1,13 +1,12 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-// 1. SuperAdmin (Master Level Auth)
 model SuperAdmin {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -19,54 +18,48 @@ model SuperAdmin {
   @@map("super_admins")
 }
 
-// 2. Project / Sub-site (Tenant)
 model Project {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  routePrefix String   @default("sitio") // Configurable prefix: e.g. "sitio", "app", "tienda", "evento"
+  id          String              @id @default(cuid())
+  slug        String              @unique
   title       String
-  description String?  @db.Text
-  published   Boolean  @default(false)
-  blocks      Json     // Array of dynamic layout blocks [{ id, type, content, styles }]
-  settings    Json?    // Theme config, SEO, branding
-  authEnabled Boolean  @default(false) // If tenant has independent sub-admin / user login
-
-  users       ProjectUser[]
+  description String?             @db.Text
+  published   Boolean             @default(false)
+  blocks      String              @db.LongText
+  settings    String?             @db.LongText
+  authEnabled Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  routePrefix String              @default("sitio")
   submissions ProjectSubmission[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  users       ProjectUser[]
 
   @@map("projects")
 }
 
-// 3. ProjectUser (Tenant Level Auth / Sub-admin & end-users)
 model ProjectUser {
   id        String   @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   email     String
   password  String
   name      String
-  role      String   @default("admin") // "admin" (sub-admin of project), "user", etc.
-  metadata  Json?    // Custom user profile attributes
-
+  role      String   @default("admin")
+  metadata  String?  @db.LongText
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, email])
   @@index([projectId])
   @@map("project_users")
 }
 
-// 4. Submissions (Dynamic form responses for project blocks)
 model ProjectSubmission {
   id        String   @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   formId    String?
-  data      Json
+  data      String   @db.LongText
   createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@map("project_submissions")
