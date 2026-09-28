@@ -1,93 +1,72 @@
-# PuvloBuilder 🚀
+# ⚙️ PuvloBuilder Backend API
 
-**Mini-CMS y Page-Builder Modular Multi-Tenant** con arquitectura de autenticación de dos niveles y renderizado dinámico de bloques mediante campos JSON en MariaDB.
+Servidor y API REST modular multi-tenant para **PuvloBuilder**.
 
----
+## 🚀 Tecnologías
 
-## 🏗 Vista General de la Arquitectura
+- **Node.js** + **Fastify 5**
+- **TypeScript**
+- **Prisma ORM** + **MariaDB**
+- **JWT** (Autenticación de 2 niveles: SuperAdmin y Sub-Admin por Tenant)
+- **@fastify/multipart** + **@fastify/static** (Almacenamiento físico por tenant)
+- **Zod** (Validación de esquemas)
 
+## 📁 Estructura del Backend
+
+```text
+├── prisma/
+│   └── schema.prisma         # Modelos de base de datos MariaDB (SuperAdmin, Project, ProjectUser, ProjectSubmission)
+├── src/
+│   ├── config/               # Variables de entorno y configuración Zod
+│   ├── lib/                  # Cliente Prisma singleton
+│   ├── middlewares/          # Guards de autenticación de dos niveles
+│   ├── modules/
+│   │   ├── superadmin-auth/  # Auth del SuperAdmin maestro (/api/superadmin/auth)
+│   │   ├── project-auth/     # Auth por tenant independiente (/api/projects/:slug/auth)
+│   │   └── projects/         # CRUD de proyectos, bloques JSON y subida de archivos (/api/projects)
+│   ├── services/
+│   │   └── tenant-storage.service.ts # Gestor del workspace y carpetas físicas por tenant
+│   └── server.ts             # Punto de entrada Fastify
+└── storage/
+    └── tenants/              # Espacios de trabajo aislados en disco por tenant
+        └── {routePrefix}/
+            └── {slug}/
+                ├── uploads/  # Imágenes y multimedia del cliente
+                ├── assets/   # Recursos del proyecto
+                ├── exports/  # Exportaciones estáticas
+                ├── config.json
+                └── README.md
 ```
-PuvloBuilder/
-├── backend/                  # Node.js + Fastify + TypeScript + Prisma ORM
-│   ├── prisma/
-│   │   └── schema.prisma     # Modelos en MariaDB con soporte de campos JSON
-│   └── src/
-│       ├── config/           # Validación de variables de entorno con Zod
-│       ├── middlewares/      # Guards de autenticación de 2 niveles y aislamiento de tenants
-│       ├── modules/
-│       │   ├── superadmin-auth/  # Autenticación del panel de control maestro
-│       │   ├── project-auth/     # Autenticación de Sub-Admins y usuarios por proyecto (:slug)
-│       │   └── projects/         # CRUD de layouts de bloques JSON y API pública
-│       └── server.ts         # Servidor Fastify con CORS y graceful shutdown
-│
-└── frontend/                 # React 19 (Vite) + TypeScript + Tailwind CSS v4
-    └── src/
-        ├── api/              # Cliente Axios con interceptores multi-token
-        ├── context/          # AuthProvider con soporte para sesiones SuperAdmin y Tenant
-        └── pages/
-            ├── SuperAdminLogin.tsx       # Login maestro con tarjeta Glassmorphism
-            ├── SuperAdminDashboard.tsx   # Panel de control de proyectos y métricas
-            ├── ProjectUserLogin.tsx      # Login independiente por sub-sitio (/sitio/:slug/login)
-            └── ProjectSiteView.tsx       # Renderizador dinámico de bloques (/sitio/:slug)
+
+## 🛠️ Instalación y Puesta en Marcha
+
+### 1. Variables de Entorno (.env)
+```env
+PORT=4000
+HOST=0.0.0.0
+NODE_ENV=development
+DATABASE_URL="mysql://minicms_user:23010@localhost:3306/minicms_db"
+JWT_SECRET="puvlo_builder_super_secret_jwt_key_2026_x99"
 ```
 
----
+### 2. Comandos
 
-## 🔑 Sistema de Autenticación de Dos Niveles (Dual-Tier Auth)
-
-1. **SuperAdmin Maestro**:
-   - Acceso al panel de control global (`/login` -> `/admin`).
-   - Crear, editar, publicar y eliminar mini-proyectos (`/sitio/:slug`).
-   - Gestionar y previsualizar bloques de layout almacenados en JSON.
-
-2. **Sub-Admins y Usuarios por Proyecto (Multi-Tenant)**:
-   - Autenticación con alcance (*scoped*) por proyecto (`/sitio/:slug/login`).
-   - Aislamiento estricto entre tenants (tokens JWT vinculados al `projectId` y `projectSlug`).
-
----
-
-## 🧩 Motor Dinámico de Bloques (Page Builder)
-
-Las páginas de cada mini-proyecto se componen mediante bloques estructurados en formato JSON dentro de MariaDB:
-- `HERO`: Título, subtítulo y llamada a la acción (CTA) personalizables.
-- `FEATURES`: Cuadrícula responsiva de características y servicios.
-- `TEXT`, `CTA`, `FORM`: Bloques extensibles para formularios y contenido.
-
----
-
-## 🛠 Stack Tecnológico
-
-- **Backend**: Node.js, Fastify, TypeScript, Prisma ORM, JWT, bcryptjs, Zod
-- **Base de datos**: MariaDB (local)
-- **Frontend**: React 19, Vite, TypeScript, Tailwind CSS v4, React Router DOM, Lucide Icons
-
----
-
-## 🚀 Puesta en Marcha
-
-### 1. Requisitos Previos
-- Node.js (v20+)
-- MariaDB activo localmente
-
-### 2. Configuración de la Base de Datos
 ```bash
-# Crear base de datos y usuario local
-sudo mariadb -e "CREATE DATABASE IF NOT EXISTS minicms_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE USER IF NOT EXISTS 'minicms_user'@'localhost' IDENTIFIED BY '23010'; GRANT ALL PRIVILEGES ON minicms_db.* TO 'minicms_user'@'localhost'; FLUSH PRIVILEGES;"
-```
-
-### 3. Iniciar Backend
-```bash
-cd backend
+# Instalar dependencias
 npm install
+
+# Generar cliente de Prisma y sincronizar esquema
+npx prisma generate
 npx prisma db push
-npm run dev
-```
-*Servidor API disponible en:* `http://localhost:4000`
 
-### 4. Iniciar Frontend
-```bash
-cd frontend
-npm install
+# Iniciar en modo desarrollo
 npm run dev
+
+# Compilar TypeScript
+npm run build
 ```
-*Aplicación web disponible en:* `http://localhost:3000`
+
+## 🌐 Repositorio Frontend
+
+El frontend desacoplado se encuentra en:
+👉 [Paulob0t/PuvloBuilder_Front](https://github.com/Paulob0t/PuvloBuilder_Front)
