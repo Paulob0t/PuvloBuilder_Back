@@ -16,4 +16,4 @@ echo "=== 4. Esperando a que MariaDB esté listo en Podman... ==="
 sleep 5
 podman ps
 
-echo "✅ ¡Base de datos migrada y corriendo en Podman exitosamente en el puerto 3306!"
+echo "[OK] Base de datos migrada y corriendo en Podman exitosamente en el puerto 3306!"
