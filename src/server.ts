@@ -7,6 +7,7 @@ import { env } from './config/env.js';
 import { superAdminAuthRoutes } from './modules/superadmin-auth/superadmin-auth.routes.js';
 import { projectAuthRoutes } from './modules/project-auth/project-auth.routes.js';
 import { projectRoutes } from './modules/projects/project.routes.js';
+import { clientRoutes } from './modules/clients/client.routes.js';
 import { prisma } from './lib/prisma.js';
 import { STORAGE_ROOT, syncAllTenantWorkspaces } from './services/tenant-storage.service.js';
 
@@ -61,6 +62,9 @@ async function main() {
 
   // Projects Management & Public Renderer (/api/projects)
   await fastify.register(projectRoutes, { prefix: '/api/projects' });
+
+  // Clients Management CRUD (/api/clients)
+  await fastify.register(clientRoutes, { prefix: '/api/clients' });
 
   // 4. Global Error Handler
   fastify.setErrorHandler((error: any, request, reply) => {

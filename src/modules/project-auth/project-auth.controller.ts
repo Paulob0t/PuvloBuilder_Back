@@ -72,7 +72,7 @@ export async function registerProjectUserHandler(request: FastifyRequest, reply:
       password: hashedPassword,
       name,
       role,
-      metadata: metadata ?? undefined,
+      metadata: metadata ? JSON.stringify(metadata) : null,
     },
     select: {
       id: true,

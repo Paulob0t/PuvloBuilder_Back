@@ -32,8 +32,26 @@ model Project {
   routePrefix String              @default("sitio")
   submissions ProjectSubmission[]
   users       ProjectUser[]
+  clients     Client[]
 
   @@map("projects")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  company   String?
+  status    String   @default("active") // "active", "lead", "inactive"
+  notes     String?  @db.Text
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("clients")
 }
 
 model ProjectUser {
